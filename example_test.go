@@ -1,23 +1,28 @@
-# GONGQ - Go Nats Generic Queues
+package gongq_test
 
-A thin wrapper around Nats Jetstream client that uses Go Generics to provide strongly typed NATS work queues.
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/nats-io/nats.go"
+	"github.com/sl1pm4t/gongq"
+	"github.com/sl1pm4t/gongq/test"
+	"os"
+)
 
-## Example Usage
+func init() {
+	s := test.RunBasicJetStreamServer()
+	os.Setenv("NATS_URL", s.ClientURL())
+}
 
-Define the Type that will be published and retrieved from the NATS queue:
-
-```go
 type ExampleMsgEventData struct {
 	Id          string
 	Type        string
 	Description string
 }
-
 type ExampleMsg struct {
 	eventData *ExampleMsgEventData
 }
 
-// Mandatory - Implement the `gongq.MsgEvent` interface
 func (e *ExampleMsg) GetId() string {
 	return e.eventData.Id
 }
@@ -33,11 +38,11 @@ func (e *ExampleMsg) EncodeEventData() []byte {
 	b, _ := json.Marshal(e.eventData)
 	return b
 }
-```
 
-Create Generic Queue for the above type:
+func Example() {
+	// Get NATS connection
+	nc, _ := nats.Connect(os.Getenv("NATS_URL"))
 
-```go
 	// create Jetstream for Queue
 	cfg := &nats.StreamConfig{
 		Name:      "EXAMPLE",
@@ -50,11 +55,7 @@ Create Generic Queue for the above type:
 
 	// create Generic Queue
 	q := gongq.NewGenericQueue[ExampleMsg](js, "example.events", cfg.Name)
-```
 
-Publish event
-
-```go
 	// Publish an event
 	q.Publish(&ExampleMsg{
 		eventData: &ExampleMsgEventData{
@@ -63,11 +64,7 @@ Publish event
 			Description: "An important task has started",
 		},
 	})
-```
 
-Read last event off queue
-
-```go
 	// Read event from NATS
 	event, _ := q.GetLastMsg("example")
 
@@ -76,4 +73,7 @@ Read last event off queue
 		event.eventData.Type,
 		event.eventData.Description,
 	)
-```
+
+	// Output:
+	// Id: abc123 [start] - An important task has started
+}
