@@ -1,30 +1,30 @@
-package gongq_test
+package gongs_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/nats-io/nats.go"
-	"github.com/sl1pm4t/gongq"
-	"github.com/sl1pm4t/gongq/test"
+	"github.com/sl1pm4t/gongs"
+	"github.com/sl1pm4t/gongs/test"
 	"sync"
 	"testing"
 )
 
-type TestQueueMsg struct {
-	eventData *TestQueueEventData
+type TestStreamMsg struct {
+	eventData *TestStreamEventData
 }
 
-type TestQueueEventData struct {
+type TestStreamEventData struct {
 	Id  int
 	Foo string
 }
 
-func (e *TestQueueMsg) GetId() string {
+func (e *TestStreamMsg) GetId() string {
 	return fmt.Sprintf("%d", e.eventData.Id)
 }
 
-func (e *TestQueueMsg) DecodeEventData(b []byte) error {
-	d := &TestQueueEventData{}
+func (e *TestStreamMsg) DecodeEventData(b []byte) error {
+	d := &TestStreamEventData{}
 	err := json.Unmarshal(b, d)
 	if err != nil {
 		return err
@@ -33,12 +33,12 @@ func (e *TestQueueMsg) DecodeEventData(b []byte) error {
 	return nil
 }
 
-func (e *TestQueueMsg) EncodeEventData() []byte {
+func (e *TestStreamMsg) EncodeEventData() []byte {
 	b, _ := json.Marshal(e.eventData)
 	return b
 }
 
-func Test_GenericQueue_QueueSubscribe(t *testing.T) {
+func Test_GenericStream_QueueSubscribe(t *testing.T) {
 	s := test.RunBasicJetStreamServer()
 	defer test.ShutdownJSServerAndRemoveStorage(t, s)
 
@@ -57,7 +57,7 @@ func Test_GenericQueue_QueueSubscribe(t *testing.T) {
 		t.Fatalf("could not create stream: %v", err)
 	}
 
-	workStream := gongq.NewGenericQueue[TestQueueMsg](
+	workStream := gongs.NewGenericStream[TestStreamMsg](
 		js,
 		"generic.test",
 		cfg.Name,
@@ -65,7 +65,7 @@ func Test_GenericQueue_QueueSubscribe(t *testing.T) {
 
 	wg := sync.WaitGroup{}
 
-	sub, err := workStream.QueueSubscribe("test-workers", func(evt *TestQueueMsg) error {
+	sub, err := workStream.QueueSubscribe("test-workers", func(evt *TestStreamMsg) error {
 		defer wg.Done()
 		t.Logf("Test Event: %d - %s\n", evt.eventData.Id, evt.eventData.Foo)
 		if evt.eventData.Id == 0 {
@@ -83,7 +83,7 @@ func Test_GenericQueue_QueueSubscribe(t *testing.T) {
 
 	for i := 1; i < 4; i++ {
 		wg.Add(1)
-		_, err := workStream.Publish(&TestQueueMsg{eventData: &TestQueueEventData{
+		_, err := workStream.Publish(&TestStreamMsg{eventData: &TestStreamEventData{
 			Id:  i,
 			Foo: fmt.Sprintf("foo-%d", i),
 		}})

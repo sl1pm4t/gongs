@@ -1,11 +1,11 @@
-package gongq_test
+package gongs_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/nats-io/nats.go"
-	"github.com/sl1pm4t/gongq"
-	"github.com/sl1pm4t/gongq/test"
+	"github.com/sl1pm4t/gongs"
+	"github.com/sl1pm4t/gongs/test"
 	"os"
 )
 
@@ -43,7 +43,7 @@ func Example() {
 	// Get NATS connection
 	nc, _ := nats.Connect(os.Getenv("NATS_URL"))
 
-	// create Jetstream for Queue
+	// create Jetstream for Stream
 	cfg := &nats.StreamConfig{
 		Name:      "EXAMPLE",
 		Subjects:  []string{"example.>"},
@@ -53,8 +53,8 @@ func Example() {
 	js, _ := nc.JetStream()
 	js.AddStream(cfg)
 
-	// create Generic Queue
-	q := gongq.NewGenericQueue[ExampleMsg](js, "example.events", cfg.Name)
+	// create Generic Stream
+	q := gongs.NewGenericStream[ExampleMsg](js, "example.events", cfg.Name)
 
 	// Publish an event
 	q.Publish(&ExampleMsg{

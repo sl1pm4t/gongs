@@ -1,10 +1,10 @@
-# GONGQ - Go Nats Generic Queues
+# GONGS - Go Nats Generic Streams
 
-A thin wrapper around Nats Jetstream client that uses Go Generics to provide strongly typed NATS work queues.
+A thin wrapper around Nats Jetstream client that uses Go Generics to provide strongly typed NATS streams.
 
 ## Example Usage
 
-Define the Type that will be published and retrieved from the NATS queue:
+Define the Type that will be published and retrieved from the NATS stream:
 
 ```go
 type ExampleMsgEventData struct {
@@ -17,7 +17,7 @@ type ExampleMsg struct {
 	eventData *ExampleMsgEventData
 }
 
-// Mandatory - Implement the `gongq.MsgEvent` interface
+// Mandatory - Implement the `gongs.MsgEvent` interface
 func (e *ExampleMsg) GetId() string {
 	return e.eventData.Id
 }
@@ -35,10 +35,10 @@ func (e *ExampleMsg) EncodeEventData() []byte {
 }
 ```
 
-Create Generic Queue for the above type:
+Create Generic Stream for the above type:
 
 ```go
-	// create Jetstream for Queue
+	// create Jetstream for Stream
 	cfg := &nats.StreamConfig{
 		Name:      "EXAMPLE",
 		Subjects:  []string{"example.>"},
@@ -48,8 +48,8 @@ Create Generic Queue for the above type:
 	js, _ := nc.JetStream()
 	js.AddStream(cfg)
 
-	// create Generic Queue
-	q := gongq.NewGenericQueue[ExampleMsg](js, "example.events", cfg.Name)
+	// create Generic Stream
+	q := gongs.NewGenericStream[ExampleMsg](js, "example.events", cfg.Name)
 ```
 
 Publish event

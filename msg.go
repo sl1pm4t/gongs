@@ -1,4 +1,4 @@
-package gongq
+package gongs
 
 type MsgHandlerFunc[T any] func(*T) error
 
