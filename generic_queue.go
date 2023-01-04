@@ -23,6 +23,8 @@ func NewGenericStream[T any, I MsgEvent[T]](
 	}
 }
 
+// Publish will publish a message to nats using a message id returned by MsgEvent.GetId
+// The message id is used for deduplication https://docs.nats.io/using-nats/developer/develop_jetstream/model_deep_dive#message-deduplication
 func (s *GenericStream[T, I]) Publish(evt I) (*nats.PubAck, error) {
 	b := evt.EncodeEventData()
 
