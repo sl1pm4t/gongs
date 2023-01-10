@@ -60,6 +60,10 @@ func (s *GenericStream[T, I]) GetLastMsg(name string) (*T, error) {
 }
 
 func (s *GenericStream[T, I]) QueueSubscribe(queue string, fn MsgHandlerFunc[T]) (*nats.Subscription, error) {
+	return s.QueueSubscribeWithOpts(queue, fn)
+}
+
+func (s *GenericStream[T, I]) QueueSubscribeWithOpts(queue string, fn MsgHandlerFunc[T], opts ...nats.SubOpt) (*nats.Subscription, error) {
 	sub, err := s.js.QueueSubscribe(s.subject, queue,
 		func(msg *nats.Msg) {
 			se, err := s.decodeMsg(msg)
@@ -68,6 +72,8 @@ func (s *GenericStream[T, I]) QueueSubscribe(queue string, fn MsgHandlerFunc[T])
 				// dump msg
 				msg.Ack()
 			}
+			// metadata, err := msg.Metadata()
+			// _ = metadata
 			evt := (*T)(se)
 			err = fn(evt)
 			if err != nil {
