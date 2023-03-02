@@ -71,9 +71,9 @@ func (s *GenericStream[T, I]) QueueSubscribeWithOpts(queue string, fn MsgHandler
 			if err != nil {
 				// dump msg
 				msg.Ack()
+				return
 			}
-			// metadata, err := msg.Metadata()
-			// _ = metadata
+
 			evt := (*T)(se)
 			err = fn(evt)
 			if err != nil {
@@ -81,6 +81,7 @@ func (s *GenericStream[T, I]) QueueSubscribeWithOpts(queue string, fn MsgHandler
 			}
 			msg.Ack()
 		},
+		opts...,
 	)
 	if err != nil {
 		return nil, err
