@@ -18,24 +18,24 @@ type ExampleMsg struct {
 }
 
 // Mandatory - Implement the `gongs.MsgEvent` interface
-func (e *ExampleMsg) GetId() string {
+func (e *ExampleMsg) GetId(ctx context.Context) string {
 	return e.eventData.Id
 }
 
-func (e *ExampleMsg) DecodeEventData(b []byte) error {
+func (e *ExampleMsg) DecodeEventData(ctx context.Context, b []byte) error {
 	d := &ExampleMsgEventData{}
 	json.Unmarshal(b, d)
 	e.eventData = d
 	return nil
 }
 
-func (e *ExampleMsg) EncodeEventData() []byte {
+func (e *ExampleMsg) EncodeEventData(ctx context.Context) []byte {
 	b, _ := json.Marshal(e.eventData)
 	return b
 }
 ```
 
-Create Generic Stream for the above type:
+Create a Generic Stream for the above type:
 
 ```go
 	// create Jetstream for Stream
@@ -55,8 +55,9 @@ Create Generic Stream for the above type:
 Publish event
 
 ```go
+	ctx := context.Background()
 	// Publish an event
-	q.Publish(&ExampleMsg{
+	q.Publish(ctx, &ExampleMsg{
 		eventData: &ExampleMsgEventData{
 			Id:          "abc123",
 			Type:        "start",
@@ -65,11 +66,12 @@ Publish event
 	})
 ```
 
-Read last event off queue
+Read the last event off queue.
 
 ```go
+	ctx := context.Background()
 	// Read event from NATS
-	event, _ := q.GetLastMsg("example")
+	event, _ := q.GetLastMsg(ctx, "example")
 
 	fmt.Printf("Id: %s [%s] - %s",
 		event.eventData.Id,
