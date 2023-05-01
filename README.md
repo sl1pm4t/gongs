@@ -22,7 +22,7 @@ func (e *ExampleMsg) GetId(ctx context.Context) string {
 	return e.eventData.Id
 }
 
-func (e *ExampleMsg) DecodeEventData(ctx context.Context, b []byte) error {
+func (e *ExampleMsg) DecodeEventData(b []byte) error {
 	d := &ExampleMsgEventData{}
 	json.Unmarshal(b, d)
 	e.eventData = d
@@ -69,9 +69,8 @@ Publish event
 Read the last event off queue.
 
 ```go
-	ctx := context.Background()
 	// Read event from NATS
-	event, _ := q.GetLastMsg(ctx, "example")
+	event, _ := q.GetLastMsg("example")
 
 	fmt.Printf("Id: %s [%s] - %s",
 		event.eventData.Id,

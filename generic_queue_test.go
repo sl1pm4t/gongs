@@ -25,7 +25,7 @@ func (e *TestStreamMsg) GetId(ctx context.Context) string {
 	return fmt.Sprintf("%d", e.eventData.Id)
 }
 
-func (e *TestStreamMsg) DecodeEventData(ctx context.Context, b []byte) error {
+func (e *TestStreamMsg) DecodeEventData(b []byte) error {
 	d := &TestStreamEventData{}
 	err := json.Unmarshal(b, d)
 	if err != nil {
@@ -69,7 +69,7 @@ func Test_GenericStream_QueueSubscribe(t *testing.T) {
 
 	wg := sync.WaitGroup{}
 
-	sub, err := workStream.QueueSubscribe(ctx, "test-workers", func(evt *TestStreamMsg) error {
+	sub, err := workStream.QueueSubscribe("test-workers", func(evt *TestStreamMsg) error {
 		defer wg.Done()
 		t.Logf("Test Event: %d - %s\n", evt.eventData.Id, evt.eventData.Foo)
 		if evt.eventData.Id == 0 {

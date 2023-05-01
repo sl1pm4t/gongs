@@ -34,37 +34,37 @@ func (s *GenericStream[T, I]) Publish(ctx context.Context, evt I) (*nats.PubAck,
 	return s.js.Publish(s.subject, b, wId)
 }
 
-func (s *GenericStream[T, I]) decodeRawStreamMsg(ctx context.Context, msg *nats.RawStreamMsg) (*T, error) {
+func (s *GenericStream[T, I]) decodeRawStreamMsg(msg *nats.RawStreamMsg) (*T, error) {
 	se := I(new(T))
-	err := se.DecodeEventData(ctx, msg.Data)
+	err := se.DecodeEventData(msg.Data)
 	if err != nil {
 		return nil, err
 	}
 	return (*T)(se), nil
 }
 
-func (s *GenericStream[T, I]) decodeMsg(ctx context.Context, msg *nats.Msg) (*T, error) {
+func (s *GenericStream[T, I]) decodeMsg(msg *nats.Msg) (*T, error) {
 	se := I(new(T))
-	err := se.DecodeEventData(ctx, msg.Data)
+	err := se.DecodeEventData(msg.Data)
 	if err != nil {
 		return nil, err
 	}
 	return (*T)(se), nil
 }
 
-func (s *GenericStream[T, I]) GetLastMsg(ctx context.Context, name string) (*T, error) {
+func (s *GenericStream[T, I]) GetLastMsg(name string) (*T, error) {
 	msg, err := s.js.GetLastMsg(s.stream, s.subject)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.decodeRawStreamMsg(ctx, msg)
+	return s.decodeRawStreamMsg(msg)
 }
 
-func (s *GenericStream[T, I]) QueueSubscribe(ctx context.Context, queue string, fn MsgHandlerFunc[T]) (*nats.Subscription, error) {
+func (s *GenericStream[T, I]) QueueSubscribe(queue string, fn MsgHandlerFunc[T]) (*nats.Subscription, error) {
 	sub, err := s.js.QueueSubscribe(s.subject, queue,
 		func(msg *nats.Msg) {
-			se, err := s.decodeMsg(ctx, msg)
+			se, err := s.decodeMsg(msg)
 
 			if err != nil {
 				// dump msg
