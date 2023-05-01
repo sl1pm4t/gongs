@@ -1,12 +1,14 @@
 package gongs_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+
 	"github.com/nats-io/nats.go"
 	"github.com/sl1pm4t/gongs"
 	"github.com/sl1pm4t/gongs/test"
-	"os"
 )
 
 func init() {
@@ -23,7 +25,7 @@ type ExampleMsg struct {
 	eventData *ExampleMsgEventData
 }
 
-func (e *ExampleMsg) GetId() string {
+func (e *ExampleMsg) GetId(ctx context.Context) string {
 	return e.eventData.Id
 }
 
@@ -34,7 +36,7 @@ func (e *ExampleMsg) DecodeEventData(b []byte) error {
 	return nil
 }
 
-func (e *ExampleMsg) EncodeEventData() []byte {
+func (e *ExampleMsg) EncodeEventData(ctx context.Context) []byte {
 	b, _ := json.Marshal(e.eventData)
 	return b
 }
@@ -52,12 +54,13 @@ func Example() {
 	}
 	js, _ := nc.JetStream()
 	js.AddStream(cfg)
+	ctx := context.Background()
 
 	// create Generic Stream
 	q := gongs.NewGenericStream[ExampleMsg](js, "example.events", cfg.Name)
 
 	// Publish an event
-	q.Publish(&ExampleMsg{
+	q.Publish(ctx, &ExampleMsg{
 		eventData: &ExampleMsgEventData{
 			Id:          "abc123",
 			Type:        "start",

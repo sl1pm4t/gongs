@@ -1,13 +1,15 @@
 package gongs_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
+	"testing"
+
 	"github.com/nats-io/nats.go"
 	"github.com/sl1pm4t/gongs"
 	"github.com/sl1pm4t/gongs/test"
-	"sync"
-	"testing"
 )
 
 type TestStreamMsg struct {
@@ -19,7 +21,7 @@ type TestStreamEventData struct {
 	Foo string
 }
 
-func (e *TestStreamMsg) GetId() string {
+func (e *TestStreamMsg) GetId(ctx context.Context) string {
 	return fmt.Sprintf("%d", e.eventData.Id)
 }
 
@@ -33,7 +35,7 @@ func (e *TestStreamMsg) DecodeEventData(b []byte) error {
 	return nil
 }
 
-func (e *TestStreamMsg) EncodeEventData() []byte {
+func (e *TestStreamMsg) EncodeEventData(ctx context.Context) []byte {
 	b, _ := json.Marshal(e.eventData)
 	return b
 }
@@ -51,6 +53,8 @@ func Test_GenericStream_QueueSubscribe(t *testing.T) {
 		Subjects:  []string{"generic.>"},
 		Storage:   nats.MemoryStorage,
 	}
+
+	ctx := context.Background()
 
 	_, err := js.AddStream(cfg)
 	if err != nil {
@@ -83,7 +87,7 @@ func Test_GenericStream_QueueSubscribe(t *testing.T) {
 
 	for i := 1; i < 4; i++ {
 		wg.Add(1)
-		_, err := workStream.Publish(&TestStreamMsg{eventData: &TestStreamEventData{
+		_, err := workStream.Publish(ctx, &TestStreamMsg{eventData: &TestStreamEventData{
 			Id:  i,
 			Foo: fmt.Sprintf("foo-%d", i),
 		}})
