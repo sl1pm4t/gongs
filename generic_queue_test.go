@@ -68,7 +68,6 @@ func Test_GenericStream_QueueSubscribe(t *testing.T) {
 	)
 
 	wg := sync.WaitGroup{}
-
 	sub, err := workStream.QueueSubscribe("test-workers", func(evt *TestStreamMsg) error {
 		defer wg.Done()
 		t.Logf("Test Event: %d - %s\n", evt.eventData.Id, evt.eventData.Foo)
